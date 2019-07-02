@@ -32,7 +32,7 @@ from powerfulseal.policy.label_runner import LabelRunner
 from powerfulseal.web.server import ServerState, start_server, ServerStateLogHandler
 from ..node import NodeInventory
 from ..node.inventory import read_inventory_file_to_dict
-from ..clouddrivers import OpenStackDriver, AWSDriver, NoCloudDriver, AzureDriver
+from ..clouddrivers import OpenStackDriver, AWSDriver, GCPDriver, NoCloudDriver, AzureDriver
 from ..execute import RemoteExecutor
 from ..k8s import K8sClient, K8sInventory
 from .pscmd import PSCmd
@@ -122,6 +122,11 @@ def add_cloud_options(parser):
         action='store_true',
         help="use AWS cloud provider",
     )
+    cloud_options.add_argument('--gcp',
+        default=os.environ.get("GOOGLE_CLOUD"),
+        action='store_true',
+        help="use Google cloud provider",
+    )
     cloud_options.add_argument('--azure',
         default=os.environ.get("AZURE_CLOUD"),
         action='store_true',
@@ -136,6 +141,10 @@ def add_cloud_options(parser):
     args.add_argument('--openstack-cloud-name',
         default=os.environ.get("OPENSTACK_CLOUD_NAME"),
         help="optional name of the open stack cloud from your config file to use",
+    )
+    args.add_argument('--gcp-project',
+        default=os.environ.get("GOOGLE_CLOUD_PROJECT_ID"),
+        help="id of the google project, required with --gcp",
     )
     args.add_argument('--azure-resource-group-name',
         default=os.environ.get("AZURE_RESORUCE_GROUP_NAME"),
@@ -453,6 +462,14 @@ def main(argv):
     elif args.aws:
         logger.info("Building AWS driver")
         driver = AWSDriver()
+    elif args.gcp:
+        logger.info("Building Google cloud driver")
+        if args.gcp_project is None:
+            logger.error("You must specify --gcp-project")
+            return os.exit(1)
+        driver = GCPDriver(
+            project=args.gcp_project,
+        )
     elif args.azure:
         logger.info("Building Azure driver")
         driver = AzureDriver(

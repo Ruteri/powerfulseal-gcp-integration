@@ -24,6 +24,7 @@ setup(
         'PyYAML>=3.12,<4',
         'jsonschema>=2.6.0,<3',
         'boto3>=1.5.15,<2.0.0',
+        'google-api-python-client>=1.7.9',
         'azure>=4.0.0,<5.0.0',
         'future>=0.16.0,<1',
         'requests>=2.21.0,<3',
