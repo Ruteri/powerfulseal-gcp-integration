@@ -31,7 +31,7 @@ Embrace the inevitable failure. __Embrace The Seal__.
 
 ## Highlights
 
-- works with `OpenStack`, `AWS`, `Azure`, and local machines
+- works with `OpenStack`, `AWS`, `GCP`, `Azure`, and local machines
 - speaks `Kubernetes` natively
 - interactive and autonomous, policy-driven mode
 - web interface to interact with PowerfulSeal
@@ -58,18 +58,19 @@ __PowerfulSeal__ works in several modes:
 
 ```sh
 $ seal interactive --help
-usage: seal interactive [-h] --kubeconfig KUBECONFIG
-                        (--openstack | --aws | --azure | --no-cloud)
+usage: seal interactive [-h] [--kubeconfig KUBECONFIG]
+                        (--openstack | --aws | --gcp | --azure | --no-cloud)
                         [--openstack-cloud-name OPENSTACK_CLOUD_NAME]
+                        [--gcp-project GCP_PROJECT]
                         [--azure-resource-group-name AZURE_RESOURCE_GROUP_NAME]
                         [--azure-node-resource-group-name AZURE_NODE_RESOURCE_GROUP_NAME]
                         (-i INVENTORY_FILE | --inventory-kubernetes)
                         [--remote-user REMOTE_USER]
                         [--ssh-allow-missing-host-keys]
                         [--override-ssh-host OVERRIDE_SSH_HOST]
-                        [--ssh-path-to-private-key SSH_PATH_TO_PRIVATE_KEY]
-                        [--ssh-password SSH_PASSWORD]
                         [--use-private-ip]
+                        [--ssh-path-to-private-key SSH_PATH_TO_PRIVATE_KEY | --ssh-password SSH_PASSWORD]
+                        [--ssh-kill-command SSH_KILL_COMMAND]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -81,23 +82,24 @@ Kubernetes settings:
 Cloud settings:
   --openstack           use OpenStack cloud provider
   --aws                 use AWS cloud provider
+  --gcp                 use Google cloud provider
   --azure               use Azure cloud provider
   --no-cloud            don't use cloud provider
   --openstack-cloud-name OPENSTACK_CLOUD_NAME
                         optional name of the open stack cloud from your config
                         file to use
+  --gcp-project GCP_PROJECT
+                        id of the google project, required with --gcp
   --azure-resource-group-name AZURE_RESOURCE_GROUP_NAME
-                        optional name of the Azure VM cluster resource group.
-                        Used to determine azure-node-resource-group-name if 
-                        that is not provided.  
+                        optional name of the Azure vm cluster resource group.
+                        Used to determine azure-node-resource-group-name.
   --azure-node-resource-group-name AZURE_NODE_RESOURCE_GROUP_NAME
-                        name of the Azure VM cluster node resource group
-                        Required when using Azure cloud provider.
+                        name of the Azure vm cluster node resource group
 
 Inventory settings:
-   -i INVENTORY_FILE, --inventory-file INVENTORY_FILE
+  -i INVENTORY_FILE, --inventory-file INVENTORY_FILE
                         the inventory file (in ini format) of groups of hosts
-                                                    to work with
+                        to work with
   --inventory-kubernetes
                         reads all kubernetes cluster nodes as inventory
 
@@ -110,11 +112,14 @@ SSH settings:
                         If you'd like to execute all commands on a different
                         host (for example for minikube) you can override it
                         here
+  --use-private-ip      Use the private IP of each node (vs public IP)
   --ssh-path-to-private-key SSH_PATH_TO_PRIVATE_KEY
                         Path to ssh private key
   --ssh-password SSH_PASSWORD
                         ssh password
-  --use-private-ip      Use the private IP of each node (vs public IP)
+  --ssh-kill-command SSH_KILL_COMMAND
+                        The command to execute on remote host to kill the
+                        {container_id}
 ```
 
 
@@ -136,19 +141,20 @@ Autonomous reads the scenarios to execute from the policy file, and runs them:
 
 ```sh
 $ seal autonomous --help
-usage: seal autonomous [-h] --kubeconfig KUBECONFIG
-                       (--openstack | --aws | --azure | --no-cloud)
+usage: seal autonomous [-h] [--kubeconfig KUBECONFIG]
+                       (--openstack | --aws | --gcp | --azure | --no-cloud)
                        [--openstack-cloud-name OPENSTACK_CLOUD_NAME]
+                       [--gcp-project GCP_PROJECT]
                        [--azure-resource-group-name AZURE_RESOURCE_GROUP_NAME]
                        [--azure-node-resource-group-name AZURE_NODE_RESOURCE_GROUP_NAME]
                        (-i INVENTORY_FILE | --inventory-kubernetes)
                        [--remote-user REMOTE_USER]
                        [--ssh-allow-missing-host-keys]
                        [--override-ssh-host OVERRIDE_SSH_HOST]
-                       [--ssh-path-to-private-key SSH_PATH_TO_PRIVATE_KEY]
-                       [--ssh-password SSH_PASSWORD]
                        [--use-private-ip]
-                       --policy-file POLICY_FILE
+                       [--ssh-path-to-private-key SSH_PATH_TO_PRIVATE_KEY | --ssh-password SSH_PASSWORD]
+                       [--ssh-kill-command SSH_KILL_COMMAND] --policy-file
+                       POLICY_FILE
                        [--stdout-collector | --prometheus-collector]
                        [--prometheus-host PROMETHEUS_HOST]
                        [--prometheus-port PROMETHEUS_PORT] [--headless]
@@ -164,22 +170,24 @@ Kubernetes settings:
 Cloud settings:
   --openstack           use OpenStack cloud provider
   --aws                 use AWS cloud provider
+  --gcp                 use Google cloud provider
   --azure               use Azure cloud provider
   --no-cloud            don't use cloud provider
   --openstack-cloud-name OPENSTACK_CLOUD_NAME
                         optional name of the open stack cloud from your config
                         file to use
+  --gcp-project GCP_PROJECT
+                        id of the google project, required with --gcp
   --azure-resource-group-name AZURE_RESOURCE_GROUP_NAME
-                        optional name of the Azure VM cluster resource group.
-                        Used to determine azure-node-resource-group-name if 
-                        that is not provided.  
+                        optional name of the Azure vm cluster resource group.
+                        Used to determine azure-node-resource-group-name.
   --azure-node-resource-group-name AZURE_NODE_RESOURCE_GROUP_NAME
-                        name of the Azure VM cluster node resource group
-                        Required when using Azure cloud provider.
+                        name of the Azure vm cluster node resource group
 
 Inventory settings:
   -i INVENTORY_FILE, --inventory-file INVENTORY_FILE
-                        the inventory file of groups of hosts to work with
+                        the inventory file (in ini format) of groups of hosts
+                        to work with
   --inventory-kubernetes
                         reads all kubernetes cluster nodes as inventory
 
@@ -192,11 +200,14 @@ SSH settings:
                         If you'd like to execute all commands on a different
                         host (for example for minikube) you can override it
                         here
+  --use-private-ip      Use the private IP of each node (vs public IP)
   --ssh-path-to-private-key SSH_PATH_TO_PRIVATE_KEY
                         Path to ssh private key
   --ssh-password SSH_PASSWORD
                         ssh password
-  --use-private-ip      Use the private IP of each node (vs public IP)
+  --ssh-kill-command SSH_KILL_COMMAND
+                        The command to execute on remote host to kill the
+                        {container_id}
 
 Policy settings:
   --policy-file POLICY_FILE
@@ -606,6 +617,10 @@ This is the easiest method.  The credentials file can be generated via `az aks g
 ### AWS
 
 The credentials to connect to AWS are specified the same as for the [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html)
+
+### GCP
+
+TBD
 
 ### OpenStack
 
